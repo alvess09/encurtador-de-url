@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus links — Encurtei</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">encurtei.</a>
+    <div class="nav-links">
+      <a href="index.html">encurtar</a>
+      <a href="lista.html" class="active">meus links</a>
+      <a href="ajuda.html">como usar</a>
+    </div>
+  </nav>
+
+  <main class="lista-main">
+    <div class="lista-header">
+      <h1>Seus links</h1>
+      <p>Todos os endereços que você já encurtou por aqui.</p>
+    </div>
+
+    <div class="search-area">
+      <div class="search-row">
+        <div class="search-field">
+          <label>buscar por código</label>
+          <div class="search-input-row">
+            <input type="text" id="searchCode" placeholder="ex: aB3xYz" maxlength="6" />
+            <button onclick="buscarPorCodigo()">buscar</button>
+          </div>
+        </div>
+        <div class="search-field">
+          <label>buscar por data</label>
+          <div class="search-input-row">
+            <input type="date" id="searchDate" />
+            <button onclick="buscarPorData()">buscar</button>
+          </div>
+        </div>
+        <div class="search-field">
+          <label>buscar por ID</label>
+          <div class="search-input-row">
+            <input type="number" id="searchId" placeholder="ex: 1" min="1" />
+            <button onclick="buscarPorId()">buscar</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-clear" onclick="carregarTodos()">← ver todos</button>
+    </div>
+
+    <div id="statusMsg" class="status-msg hidden"></div>
+
+    <div id="listaContainer" class="lista-container">
+      <div class="loading-state">carregando seus links...</div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>feito com Node.js · <a href="index.html">encurtar novo link →</a></p>
+  </footer>
+
+  <script>
+    let todosOsLinks = [];
+
+    async function carregarTodos() {
+      const container = document.getElementById('listaContainer');
+      container.innerHTML = '<div class="loading-state">carregando...</div>';
+      esconderStatus();
+
+      try {
+        // Tenta buscar links de hoje e de datas recentes
+        const today = new Date().toISOString().split('T')[0];
+        const res = await fetch(`/urls?date=${today}`);
+        const data = await res.json();
+
+        todosOsLinks = data;
+
+        if (data.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>Ainda não tem nenhum link encurtado hoje.</p><a href="index.html">Encurtar o primeiro →</a></div>';
+          return;
+        }
+        renderizarLista(data);
+      } catch {
+        container.innerHTML = '<div class="empty-state"><p>Não consegui conectar ao servidor. Ele está rodando?</p></div>';
+      }
+    }
+
+    async function buscarPorCodigo() {
+      const code = document.getElementById('searchCode').value.trim();
+      if (!code) { mostrarStatus('Digite um código para buscar.'); return; }
+
+      try {
+        const res = await fetch(`/info/${code}`);
+        const data = await res.json();
+        if (!res.ok) { mostrarStatus(`Nenhum link encontrado com o código "${code}".`); return; }
+        renderizarLista([data]);
+        esconderStatus();
+      } catch {
+        mostrarStatus('Erro ao buscar. Verifique o servidor.');
+      }
+    }
+
+    async function buscarPorData() {
+      const date = document.getElementById('searchDate').value;
+      if (!date) { mostrarStatus('Escolha uma data para buscar.'); return; }
+
+      try {
+        const res = await fetch(`/urls?date=${date}`);
+        const data = await res.json();
+        if (data.length === 0) { mostrarStatus(`Nenhum link encurtado em ${formatarData(date)}.`); renderizarLista([]); return; }
+        renderizarLista(data);
+        esconderStatus();
+      } catch {
+        mostrarStatus('Erro ao buscar. Verifique o servidor.');
+      }
+    }
+
+    async function buscarPorId() {
+      const id = document.getElementById('searchId').value.trim();
+      if (!id) { mostrarStatus('Digite um ID para buscar.'); return; }
+
+      try {
+        const res = await fetch(`/urls/${id}`);
+        const data = await res.json();
+        if (!res.ok) { mostrarStatus(`Nenhum link com ID ${id}.`); return; }
+        renderizarLista([data]);
+        esconderStatus();
+      } catch {
+        mostrarStatus('Erro ao buscar. Verifique o servidor.');
+      }
+    }
+
+    function renderizarLista(links) {
+      const container = document.getElementById('listaContainer');
+      if (links.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Nenhum resultado encontrado.</p></div>';
+        return;
+      }
+      container.innerHTML = links.map(link => `
+        <div class="link-card">
+          <div class="link-card-top">
+            <span class="link-id">#${link.id}</span>
+            <span class="link-date">${formatarData(link.createdAt)}</span>
+          </div>
+          <a href="${link.shortUrl}" target="_blank" class="link-short">${link.shortUrl}</a>
+          <p class="link-original" title="${link.originalUrl}">${link.originalUrl}</p>
+          <div class="link-actions">
+            <button class="copy-btn-sm" onclick="copiar('${link.shortUrl}', this)">copiar link</button>
+            <span class="link-code">código: <strong>${link.shortCode}</strong></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function copiar(url, btn) {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = 'copiado!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copiar link'; btn.classList.remove('copied'); }, 2000);
+    }
+
+    function mostrarStatus(msg) {
+      const el = document.getElementById('statusMsg');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function esconderStatus() {
+      document.getElementById('statusMsg').classList.add('hidden');
+    }
+
+    function formatarData(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    carregarTodos();
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encurtei — encurtador de URLs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">encurtei.</a>
+    <div class="nav-links">
+      <a href="index.html" class="active">encurtar</a>
+      <a href="lista.html">meus links</a>
+      <a href="ajuda.html">como usar</a>
+    </div>
+  </nav>
+
+  <main class="hero">
+    <div class="hero-text">
+      <h1>Links longos<br /><em>merecem descanso.</em></h1>
+      <p class="subtitle">Cole qualquer URL abaixo e receba um link curtinho, pronto pra compartilhar.</p>
+    </div>
+
+    <div class="card">
+      <div class="input-group">
+        <input
+          type="url"
+          id="urlInput"
+          placeholder="https://seu-link-muito-longo.com/aqui/vai/tudo..."
+          autocomplete="off"
+        />
+        <button id="shortenBtn" onclick="encurtar()">
+          <span class="btn-text">encurtar</span>
+          <span class="btn-icon">→</span>
+        </button>
+      </div>
+      <p id="errorMsg" class="error-msg hidden"></p>
+    </div>
+
+    <div id="resultCard" class="result-card hidden">
+      <p class="result-label">pronto! aqui está seu link:</p>
+      <div class="result-link-row">
+        <a id="resultLink" href="#" target="_blank" class="result-link"></a>
+        <button class="copy-btn" onclick="copiar()" id="copyBtn">copiar</button>
+      </div>
+      <p class="result-original" id="resultOriginal"></p>
+    </div>
+
+    <div class="decoration">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+      <div class="deco-line"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>feito com Node.js · <a href="lista.html">ver todos os links →</a></p>
+  </footer>
+
+  <script>
+    async function encurtar() {
+      const input = document.getElementById('urlInput');
+      const btn = document.getElementById('shortenBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      const resultCard = document.getElementById('resultCard');
+      const url = input.value.trim();
+
+      errorMsg.classList.add('hidden');
+      resultCard.classList.add('hidden');
+
+      if (!url) {
+        mostrarErro('Cola uma URL antes de encurtar 😉');
+        return;
+      }
+
+      try { new URL(url); } catch {
+        mostrarErro('Essa URL não parece válida. Tem que começar com http:// ou https://');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Algo deu errado');
+
+        document.getElementById('resultLink').textContent = data.shortUrl;
+        document.getElementById('resultLink').href = data.shortUrl;
+        document.getElementById('resultOriginal').textContent = '↳ ' + data.originalUrl;
+        resultCard.classList.remove('hidden');
+        resultCard.classList.add('show');
+        input.value = '';
+      } catch (err) {
+        mostrarErro('Não consegui encurtar. O servidor está rodando?');
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    function mostrarErro(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    async function copiar() {
+      const link = document.getElementById('resultLink').textContent;
+      await navigator.clipboard.writeText(link);
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'copiado!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'copiar';
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    document.getElementById('urlInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') encurtar();
+    });
+  </script>
+</body>
+</html>
