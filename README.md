@@ -26,6 +26,8 @@ url-shortener/
     ├── index.html
     ├── lista.html
     ├── ajuda.html
+    ├── docs.html
+    ├── swagger.json
     └── style.css
 
 ```
