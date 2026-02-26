@@ -1,0 +1,285 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Encurtei — API de encurtamento de URLs",
+    "description": "API para encurtar URLs, consultá-las por ID, data ou código curto, e redirecionar para a URL original.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "URLs",
+      "description": "Operações com URLs encurtadas"
+    },
+    {
+      "name": "Redirecionamento",
+      "description": "Acesso ao link curto"
+    }
+  ],
+  "paths": {
+    "/shorten": {
+      "post": {
+        "tags": ["URLs"],
+        "summary": "Encurtar uma URL",
+        "description": "Recebe uma URL longa e retorna a versão encurtada. Se a URL já foi encurtada antes, retorna o registro existente sem duplicar.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://www.google.com/search?q=nodejs+encurtador+de+url"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "URL encurtada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UrlRecord" },
+                "example": {
+                  "id": 1,
+                  "originalUrl": "https://www.google.com/search?q=nodejs+encurtador+de+url",
+                  "shortCode": "aB3xYz",
+                  "shortUrl": "http://localhost:3000/aB3xYz",
+                  "createdAt": "2026-02-25"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campo url não enviado ou inválido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "Campo \"url\" é obrigatório" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/urls/{id}": {
+      "get": {
+        "tags": ["URLs"],
+        "summary": "Buscar URL por ID",
+        "description": "Retorna os dados de uma URL encurtada a partir do seu ID numérico.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID numérico da URL encurtada",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "URL encontrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UrlRecord" }
+              }
+            }
+          },
+          "404": {
+            "description": "Nenhuma URL encontrada com esse ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "URL não encontrada" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/urls": {
+      "get": {
+        "tags": ["URLs"],
+        "summary": "Buscar URLs por data",
+        "description": "Retorna todas as URLs encurtadas em uma data específica.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "description": "Data de criação no formato YYYY-MM-DD",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-02-25"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de URLs criadas na data informada (pode ser vazia)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/UrlRecord" }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Formato de data inválido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "Formato de data inválido. Use YYYY-MM-DD" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/info/{shortCode}": {
+      "get": {
+        "tags": ["URLs"],
+        "summary": "Buscar URL pelo código curto",
+        "description": "Retorna as informações de uma URL a partir do código de 6 caracteres. Não redireciona — apenas retorna os dados.",
+        "parameters": [
+          {
+            "name": "shortCode",
+            "in": "path",
+            "required": true,
+            "description": "Código de 6 caracteres gerado no encurtamento",
+            "schema": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 6,
+              "example": "aB3xYz"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "URL encontrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UrlRecord" }
+              }
+            }
+          },
+          "404": {
+            "description": "Código não encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "Código não encontrado" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{shortCode}": {
+      "get": {
+        "tags": ["Redirecionamento"],
+        "summary": "Redirecionar para URL original",
+        "description": "Redireciona o usuário para a URL original a partir do código curto. Este é o endpoint ativado quando alguém acessa um link encurtado no navegador.",
+        "parameters": [
+          {
+            "name": "shortCode",
+            "in": "path",
+            "required": true,
+            "description": "Código de 6 caracteres do link curto",
+            "schema": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 6,
+              "example": "aB3xYz"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirecionamento para a URL original",
+            "headers": {
+              "Location": {
+                "description": "URL original de destino",
+                "schema": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "404": {
+            "description": "Código não encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "Código não encontrado" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UrlRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Identificador único gerado automaticamente",
+            "example": 1
+          },
+          "originalUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "A URL original completa",
+            "example": "https://www.google.com/search?q=nodejs"
+          },
+          "shortCode": {
+            "type": "string",
+            "description": "Código de 6 caracteres gerado aleatoriamente",
+            "example": "aB3xYz"
+          },
+          "shortUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL encurtada completa com o domínio",
+            "example": "http://localhost:3000/aB3xYz"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de criação no formato YYYY-MM-DD",
+            "example": "2026-02-25"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Descrição do erro",
+            "example": "URL não encontrada"
+          }
+        }
+      }
+    }
+  }
+}

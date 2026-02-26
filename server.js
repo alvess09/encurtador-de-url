@@ -17,6 +17,7 @@ const MIME_TYPES = {
   '.ico':  'image/x-icon',
 };
 
+
 function serveStatic(res, filePath) {
   const ext = path.extname(filePath);
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
@@ -61,10 +62,15 @@ const server = http.createServer(async (req, res) => {
   try {
     // Arquivos estáticos
     if (method === 'GET') {
+
       if (pathname === '/' || pathname === '/index.html') return serveStatic(res, 'index.html');
       if (pathname === '/lista.html') return serveStatic(res, 'lista.html');
       if (pathname === '/ajuda.html') return serveStatic(res, 'ajuda.html');
       if (pathname === '/style.css')  return serveStatic(res, 'style.css');
+      // Documentação Swagger API
+      if (pathname === '/docs')       return serveStatic(res, 'docs.html');
+      if (pathname === '/swagger.json') return serveStatic(res, 'swagger.json');
+
     }
 
     // API: POST /shorten
@@ -114,5 +120,5 @@ const server = http.createServer(async (req, res) => {
 
 const PORT = 3000;
 server.listen(PORT, () => {
-  console.log(`\n🔗 Encurtador rodando em http://localhost:${PORT}\n`);
+  console.log(`\n Encurtador rodando em http://localhost:${PORT}\n`);
 });

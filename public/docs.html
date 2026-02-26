@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encurtei — Documentação da API</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #F5F0E8;
+      min-height: 100vh;
+    }
+
+    .topbar-custom {
+      background: rgba(245, 240, 232, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #DDD5C8;
+      padding: 1rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .topbar-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #E8571A;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      font-family: Georgia, serif;
+    }
+
+    .topbar-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .topbar-links a {
+      font-size: 0.88rem;
+      color: #7A7068;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .topbar-links a:hover { color: #1A1714; }
+    .topbar-links a.active { color: #1A1714; }
+
+    .docs-header {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 0;
+    }
+
+    .docs-header h1 {
+      font-family: Georgia, serif;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+      color: #1A1714;
+    }
+
+    .docs-header p {
+      color: #7A7068;
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+    }
+
+    #swagger-ui {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 4rem;
+    }
+
+    /* Customização visual do Swagger */
+    .swagger-ui .topbar { display: none; }
+
+    .swagger-ui .info { margin: 0 0 1.5rem; }
+    .swagger-ui .info .title { display: none; }
+    .swagger-ui .info .description p { color: #7A7068; }
+
+    .swagger-ui .scheme-container {
+      background: #FDFAF4;
+      border: 1px solid #DDD5C8;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      box-shadow: none;
+    }
+
+    .swagger-ui .opblock {
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      border: 1px solid #DDD5C8;
+      box-shadow: 0 1px 8px rgba(26,23,20,0.05);
+    }
+
+    .swagger-ui .opblock.opblock-post { border-color: #E8571A; background: rgba(232,87,26,0.04); }
+    .swagger-ui .opblock.opblock-get  { border-color: #3B82F6; background: rgba(59,130,246,0.04); }
+
+    .swagger-ui .opblock .opblock-summary-method {
+      border-radius: 4px;
+      font-weight: 600;
+      min-width: 60px;
+      font-size: 0.78rem;
+    }
+
+    .swagger-ui .opblock.opblock-post .opblock-summary-method { background: #E8571A; }
+    .swagger-ui .opblock.opblock-get  .opblock-summary-method { background: #3B82F6; }
+
+    .swagger-ui .opblock-summary-path {
+      font-family: 'Menlo', monospace;
+      font-size: 0.9rem;
+      color: #1A1714;
+    }
+
+    .swagger-ui .btn.execute {
+      background: #E8571A;
+      border-color: #E8571A;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .swagger-ui .btn.execute:hover { background: #C94512; }
+
+    .swagger-ui section.models { display: none; }
+
+    .swagger-ui .response-col_status { color: #1A1714; font-weight: 600; }
+
+    .swagger-ui select, .swagger-ui input[type=text], .swagger-ui textarea {
+      border-radius: 6px;
+      border: 1.5px solid #DDD5C8;
+      font-family: monospace;
+    }
+
+    .swagger-ui .tab li { color: #7A7068; }
+    .swagger-ui .tab li.active { color: #1A1714; border-bottom: 2px solid #E8571A; }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar-custom">
+    <a class="topbar-logo" href="/">encurtei.</a>
+    <div class="topbar-links">
+      <a href="/">encurtar</a>
+      <a href="/lista.html">meus links</a>
+      <a href="/ajuda.html">como usar</a>
+      <a href="/docs" class="active">api docs</a>
+    </div>
+  </nav>
+
+  <div class="docs-header">
+    <h1>Documentação da API</h1>
+    <p>Explore e teste todos os endpoints do encurtador direto por aqui.</p>
+  </div>
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    SwaggerUIBundle({
+      url: '/swagger.json',
+      dom_id: '#swagger-ui',
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIBundle.SwaggerUIStandalonePreset
+      ],
+      layout: 'BaseLayout',
+      deepLinking: true,
+      defaultModelsExpandDepth: -1,
+      defaultModelExpandDepth: 3,
+      displayRequestDuration: true,
+      tryItOutEnabled: true,
+    });
+  </script>
+</body>
+</html>
